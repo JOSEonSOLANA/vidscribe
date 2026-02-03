@@ -2,24 +2,20 @@ import { AgentServer, TaskState, AgentSkill } from "@wardenprotocol/agent-kit";
 import { app } from "./agent.js";
 import { VidScribeStateType } from "./state.js";
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 
 try {
     dotenv.config();
 
-    /**
-     * VidScribe Warden Agent Server
-     * Exposes the agent via A2A and LangGraph protocols.
-     */
     const server = new AgentServer({
         agentCard: {
             name: "VidScribe",
-            description: "Extracts audio from X/Twitter videos, transcribes locally, and summarizes using Groq.",
+            description: "Extracts audio from X/Twitter videos, transcribes using API, and summarizes using Groq.",
             url: process.env.AGENT_URL || "http://localhost:3000",
             capabilities: { streaming: true, multiTurn: false },
             skills: ["video-download", "transcription", "summarization", "content-ideas"] as unknown as AgentSkill[],
         },
         handler: async function* (context) {
-            // Extract URL from user message
             const userMessage = context.message.parts
                 .filter((p) => p.type === "text")
                 .map((p) => p.text)
@@ -48,13 +44,11 @@ try {
             };
 
             try {
-                // Run the LangGraph in streaming mode
                 const stream = await app.stream({ url });
                 let lastTranscription = "";
                 let finalState: Partial<VidScribeStateType> = {};
 
                 for await (const event of stream) {
-                    // event is an object where keys are node names
                     if (event.download) {
                         const duration = event.download.duration || 0;
                         yield {
@@ -118,9 +112,26 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     });
 
     const port = Number(process.env.PORT) || 3000;
-    server.listen(port).then(() => {
-        console.log(`🚀 VidScribe Agent Server running on http://localhost:${port}`);
+    const host = '0.0.0.0';
+
+    // Create a native HTTP server to wrap the AgentServer
+    const httpServer = createServer((req, res) => {
+        if (req.url === '/' && req.method === 'GET') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ status: 'ok', service: 'VidScribe Agent' }));
+            return;
+        }
+        // Use type cast to bypass TS privacy check on consolidated handler
+        return (server as any).handleRequest(req, res);
     });
+
+    httpServer.listen(port, host, () => {
+        const publicUrl = process.env.AGENT_URL || `http://${host}:${port}`;
+        console.log(`🚀 VidScribe Agent Server running on ${host}:${port}`);
+        console.log(`🔗 Agent available at: ${publicUrl}`);
+        console.log(`✅ Health check: ${publicUrl}/`);
+    });
+
 } catch (initError: any) {
     console.error('CRITICAL: Failed to initialize VidScribe Agent Server:');
     console.error(initError);

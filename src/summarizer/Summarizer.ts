@@ -1,5 +1,5 @@
 import { Groq } from 'groq-sdk';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -13,23 +13,21 @@ export interface SummaryResult {
 
 export class Summarizer {
     private groq: Groq;
-    private openai: OpenAI;
+    private genAI: GoogleGenerativeAI;
 
     constructor() {
         if (!process.env.GROQ_API_KEY) {
             throw new Error('GROQ_API_KEY not found in .env');
         }
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OPENAI_API_KEY not found in .env');
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error('GEMINI_API_KEY not found in .env');
         }
 
         this.groq = new Groq({
             apiKey: process.env.GROQ_API_KEY.trim(),
         });
 
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY.trim(),
-        });
+        this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY.trim());
     }
 
     /**
@@ -57,29 +55,31 @@ export class Summarizer {
             }
             `;
 
-        console.log('Starting summarization (Primary: OpenAI GPT-4o)...');
+        console.log('Starting summarization (Primary: Gemini 1.5 Flash)...');
 
         try {
-            // Phase 1: Try OpenAI
-            const completion = await this.openai.chat.completions.create({
-                messages: [{ role: 'user', content: prompt }],
-                model: 'gpt-4o',
-                response_format: { type: 'json_object' },
+            // Phase 1: Try Gemini
+            const model = this.genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                generationConfig: { responseMimeType: "application/json" }
             });
 
-            const content = completion.choices[0].message.content;
-            if (!content) throw new Error('OpenAI returned empty content');
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
 
-            const result = JSON.parse(content);
+            if (!text) throw new Error('Gemini returned empty content');
+
+            const parsed = JSON.parse(text);
             return {
-                summary: result.summary || 'Summary could not be generated.',
-                contentIdeas: result.contentIdeas || [],
+                summary: parsed.summary || 'Summary could not be generated.',
+                contentIdeas: parsed.contentIdeas || [],
                 status: 'Completed',
-                engineUsed: 'OpenAI GPT-4o'
+                engineUsed: 'Gemini 1.5 Flash'
             };
 
         } catch (error) {
-            console.warn('⚠️ OpenAI failed, switching to Groq failover...', error);
+            console.warn('⚠️ Gemini failed, switching to Groq failover...', error);
 
             // Phase 2: Groq Failover
             try {
@@ -90,11 +90,11 @@ export class Summarizer {
                 });
 
                 const content = chatCompletion.choices[0]?.message?.content || '{}';
-                const result = JSON.parse(content);
+                const parsed = JSON.parse(content);
 
                 return {
-                    summary: result.summary || 'Summary could not be generated.',
-                    contentIdeas: result.contentIdeas || [],
+                    summary: parsed.summary || 'Summary could not be generated.',
+                    contentIdeas: parsed.contentIdeas || [],
                     status: 'Completed (Groq Failover)',
                     engineUsed: 'Groq Llama 3.3'
                 };

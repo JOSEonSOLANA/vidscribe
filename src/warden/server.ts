@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v2.4] Starting VidScribe Agent Server...');
+    console.log('🚀 [v2.5] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key check
@@ -22,7 +22,7 @@ try {
     if (!apiKey) {
         console.warn('⚠️  WARNING: GROQ_API_KEY is not defined in environment variables!');
     } else {
-        console.log(`✅ [v2.4] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
+        console.log(`✅ [v2.5] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
     }
 
     const server = new AgentServer({
@@ -102,7 +102,10 @@ try {
                     lastTranscription = userMessage; // For the "Source" section
                 }
 
-                const responseText = `
+                let responseText = "";
+
+                if (url) {
+                    responseText = `
 ## 📂 SECTION 1: SOURCE CONTENT
 ---
 ${lastTranscription || "Not available."}
@@ -121,7 +124,23 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
 ---
 *Status: ${finalState.status || "Completed"}*
-          `;
+`;
+                } else {
+                    responseText = `
+## 🎯 EXECUTIVE SUMMARY
+---
+${finalState.summary || "Summary could not be generated."}
+
+---
+
+## 💡 CONTENT IDEAS
+---
+${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: string, i: number) => `- ${idea}`).join('\n') : "No ideas generated."}
+
+---
+*Status: ${finalState.status || "Completed (Text Mode)"}*
+`;
+                }
 
                 yield {
                     state: "completed" as TaskState,
@@ -298,15 +317,19 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.4</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.4</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.5</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.5</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
                 <div class="message-content">
-                    <h3>Welcome to VidScribe Cloud! 🎬</h3>
-                    I'm ready to analyze your videos. Paste a link from <strong>X (Twitter)</strong> or any public video URL below.
-                    <blockquote>I'll extract the audio, transcribe it with AI, and generate a strategic summary for you.</blockquote>
+                    <h3>Welcome to VidScribe! 🎬✍️</h3>
+                    I'm ready to analyze your content. You can:
+                    <ul>
+                        <li>Paste a video link from <strong>X (Twitter)</strong> or any public URL.</li>
+                        <li>Paste a <strong>long text or article</strong> for instant summarization.</li>
+                    </ul>
+                    <blockquote>I'll extract the core value and generate a strategic summary for you.</blockquote>
                 </div>
             </div>
         </div>
@@ -318,7 +341,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v2.4 script loaded');
+        console.log('VidScribe v2.5 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
 
@@ -419,7 +442,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v2.4] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v2.5] ${new Date().toISOString()} ${method} ${url}`);
 
         // Health check and Main UI
         if (url === '/' && (method === 'GET' || method === 'HEAD')) {
@@ -437,7 +460,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '2.4' }));
+            res.end(JSON.stringify({ ok: true, version: '2.5' }));
             return;
         }
 

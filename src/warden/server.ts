@@ -14,16 +14,17 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v2.6] Starting VidScribe Agent Server...');
+    console.log('🚀 [v2.7] Starting VidScribe Agent Server...');
     dotenv.config();
 
-    // Masked API Key check
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-        console.warn('⚠️  WARNING: GROQ_API_KEY is not defined in environment variables!');
-    } else {
-        console.log(`✅ [v2.6] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
-    }
+    // Masked API Key checks
+    const groqKey = process.env.GROQ_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
+    if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
+    if (!openaiKey) console.warn('⚠️ WARNING: OPENAI_API_KEY is not defined!');
+
+    console.log(`✅ [v2.7] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., OpenAI: ${openaiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
@@ -124,6 +125,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
 ---
 *Status: ${finalState.status || "Completed"}*
+*AI Engine: ${finalState.engineUsed || "Unknown"}*
 `;
                 } else {
                     responseText = `
@@ -139,6 +141,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
 ---
 *Status: ${finalState.status || "Completed (Text Mode)"}*
+*AI Engine: ${finalState.engineUsed || "Unknown"}*
 `;
                 }
 
@@ -317,8 +320,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.6</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.6</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.7</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.7</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -341,7 +344,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v2.6 script loaded');
+        console.log('VidScribe v2.7 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
 
@@ -442,7 +445,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v2.6] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v2.7] ${new Date().toISOString()} ${method} ${url}`);
 
         // Health check and Main UI
         if (url === '/' && (method === 'GET' || method === 'HEAD')) {
@@ -460,7 +463,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '2.6' }));
+            res.end(JSON.stringify({ ok: true, version: '2.7' }));
             return;
         }
 

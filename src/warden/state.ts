@@ -35,6 +35,11 @@ export const VidScribeState = Annotation.Root({
      * Status or error messages
      */
     status: Annotation<string>(),
+
+    /**
+     * The AI engine used for summarization (OpenAI or Groq)
+     */
+    engineUsed: Annotation<string>(),
 });
 
 export type VidScribeStateType = typeof VidScribeState.State;

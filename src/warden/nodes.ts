@@ -93,7 +93,8 @@ export async function summarizeNode(state: VidScribeStateType): Promise<Partial<
         return {
             summary: result.summary,
             contentIdeas: result.contentIdeas,
-            status: 'Pipeline completed successfully'
+            status: result.status,
+            engineUsed: result.engineUsed
         };
     } catch (error: any) {
         console.error(`[${new Date().toISOString()}] --- Node: Summarize ERROR:`, error);

@@ -19,6 +19,12 @@ const summarizer = new Summarizer();
 export async function downloadNode(state: VidScribeStateType): Promise<Partial<VidScribeStateType>> {
     const startTime = Date.now();
     console.log(`[${new Date().toISOString()}] --- Node: Download START ---`);
+
+    if (!state.url) {
+        console.warn(`[${new Date().toISOString()}] --- Node: Download SKIP (No URL) ---`);
+        return { status: 'Skipping download (Text Mode)' };
+    }
+
     try {
         const audioPath = await downloader.downloadAudio(state.url);
 
@@ -49,6 +55,12 @@ export async function downloadNode(state: VidScribeStateType): Promise<Partial<V
 export async function transcribeNode(state: VidScribeStateType): Promise<Partial<VidScribeStateType>> {
     const startTime = Date.now();
     console.log(`[${new Date().toISOString()}] --- Node: Transcribe START ---`);
+
+    if (state.transcription) {
+        console.warn(`[${new Date().toISOString()}] --- Node: Transcribe SKIP (Transcription already exists) ---`);
+        return { status: 'Transcription already present' };
+    }
+
     if (!state.audioPath) {
         console.warn(`[${new Date().toISOString()}] --- Node: Transcribe SKIP (No audio path) ---`);
         return { status: 'No audio path to transcribe' };

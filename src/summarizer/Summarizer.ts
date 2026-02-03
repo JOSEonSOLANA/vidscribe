@@ -55,12 +55,12 @@ export class Summarizer {
             }
             `;
 
-        console.log('Starting summarization (Primary: Gemini 1.5 Flash)...');
+        console.log('Starting summarization (Primary: Gemini 1.5 Flash Latest)...');
 
         try {
             // Phase 1: Try Gemini
             const model = this.genAI.getGenerativeModel({
-                model: "gemini-1.5-flash",
+                model: "gemini-1.5-flash-latest", // Re-verifying this standard model name
                 generationConfig: { responseMimeType: "application/json" }
             });
 

@@ -1,0 +1,10 @@
+node_modules
+bin
+data
+.env
+.git
+.vscode
+chat-test/node_modules
+chat-test/dist
+*.exe
+*.bin

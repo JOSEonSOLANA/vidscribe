@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VidScribe Chat Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon">V</div>
+        <h1>VidScribe <span>Agent</span></h1>
+      </div>
+      <div class="status-badge" id="server-status">
+        <span class="status-dot"></span>
+        Checking Agent...
+      </div>
+    </header>
+    <p class="subtitle">Extract insights from any video in seconds</p>
+
+    <main id="chat-container">
+      <div id="messages">
+        <div class="message agent-message">
+          <div class="message-content">
+            Hello! Paste a video URL (X/Twitter or public link) and I'll transcribe it and create a summary for you.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <form id="chat-form" class="input-area">
+        <input type="text" id="url-input" placeholder="Paste video URL here..." autocomplete="off">
+        <button type="submit" id="send-btn">
+          <span>Process</span>
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>

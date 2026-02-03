@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v2.3] Starting VidScribe Agent Server...');
+    console.log('🚀 [v2.4] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key check
@@ -22,7 +22,7 @@ try {
     if (!apiKey) {
         console.warn('⚠️  WARNING: GROQ_API_KEY is not defined in environment variables!');
     } else {
-        console.log(`✅ [v2.3] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
+        console.log(`✅ [v2.4] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
     }
 
     const server = new AgentServer({
@@ -42,64 +42,74 @@ try {
             const urlMatch = userMessage.match(/https?:\/\/[^\s]+/);
             const url = urlMatch ? urlMatch[0] : null;
 
-            if (!url) {
-                yield {
-                    state: "completed" as TaskState,
-                    message: {
-                        role: "agent",
-                        parts: [{ type: "text", text: "Please provide a valid video URL (X/Twitter or public) to process." }],
-                    },
-                };
-                return;
-            }
-
-            yield {
-                state: "working" as TaskState,
-                message: {
-                    role: "agent",
-                    parts: [{ type: "text", text: `### 📂 Process Status\n⏳ Starting VidScribe processing for: ${url}...` }],
-                },
-            };
+            let lastTranscription = "";
+            let finalState: Partial<VidScribeStateType> = {};
 
             try {
-                const stream = await app.stream({ url });
-                let lastTranscription = "";
-                let finalState: Partial<VidScribeStateType> = {};
 
-                for await (const event of stream) {
-                    if (event.download) {
-                        const duration = event.download.duration || 0;
-                        yield {
-                            state: "working" as TaskState,
-                            message: {
-                                role: "agent",
-                                parts: [{ type: "text", text: `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...\n\n> [!TIP]\n> Using Groq Whisper API. Transcription usually takes **5-10 seconds**.` }],
-                            },
-                        };
+                if (url) {
+                    yield {
+                        state: "working" as TaskState,
+                        message: {
+                            role: "agent",
+                            parts: [{ type: "text", text: `### 📂 Process Status\n⏳ Starting VidScribe processing for: ${url}...` }],
+                        },
+                    };
+
+                    const stream = await app.stream({ url });
+                    for await (const event of stream) {
+                        if (event.download) {
+                            const duration = event.download.duration || 0;
+                            yield {
+                                state: "working" as TaskState,
+                                message: {
+                                    role: "agent",
+                                    parts: [{ type: "text", text: `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...` }],
+                                },
+                            };
+                        }
+                        if (event.transcribe) {
+                            lastTranscription = event.transcribe.transcription || "";
+                            yield {
+                                state: "working" as TaskState,
+                                message: {
+                                    role: "agent",
+                                    parts: [{ type: "text", text: `### 📝 Transcription Completed\n\n${lastTranscription}\n\n---\n⏳ Generating smart summary...` }],
+                                },
+                            };
+                        }
+                        if (event.summarize) {
+                            finalState = event.summarize;
+                        }
                     }
-                    if (event.transcribe) {
-                        lastTranscription = event.transcribe.transcription || "";
-                        yield {
-                            state: "working" as TaskState,
-                            message: {
-                                role: "agent",
-                                parts: [{ type: "text", text: `### 📝 Transcription Completed\n\n${lastTranscription}\n\n---\n⏳ Generating smart summary...` }],
-                            },
-                        };
+                } else {
+                    // Plane text branch
+                    yield {
+                        state: "working" as TaskState,
+                        message: {
+                            role: "agent",
+                            parts: [{ type: "text", text: `### 📝 Input Detected: Plain Text\n⏳ Generating summary for your content...` }],
+                        },
+                    };
+
+                    // Directly use the langgraph app with the text as transcription
+                    const stream = await app.stream({ transcription: userMessage });
+                    for await (const event of stream) {
+                        if (event.summarize) {
+                            finalState = event.summarize;
+                        }
                     }
-                    if (event.summarize) {
-                        finalState = event.summarize;
-                    }
+                    lastTranscription = userMessage; // For the "Source" section
                 }
 
                 const responseText = `
-## 📂 SECTION 1: FULL TRANSCRIPTION
+## 📂 SECTION 1: SOURCE CONTENT
 ---
 ${lastTranscription || "Not available."}
 
 ---
 
-## 🎯 SECTION 2: EXECUTIVE SUMMARY (Twitter-Ready)
+## 🎯 SECTION 2: EXECUTIVE SUMMARY
 ---
 ${finalState.summary || "Summary could not be generated."}
 
@@ -288,8 +298,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.3</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.3</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.4</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.4</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -308,7 +318,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v2.3 script loaded');
+        console.log('VidScribe v2.4 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
 
@@ -409,7 +419,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v2.3] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v2.4] ${new Date().toISOString()} ${method} ${url}`);
 
         // Health check and Main UI
         if (url === '/' && (method === 'GET' || method === 'HEAD')) {
@@ -427,7 +437,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '2.3' }));
+            res.end(JSON.stringify({ ok: true, version: '2.4' }));
             return;
         }
 

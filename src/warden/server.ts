@@ -151,6 +151,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             --glass-border: rgba(255, 255, 255, 0.1);
             --agent-msg-bg: rgba(112, 0, 255, 0.12);
             --user-msg-bg: rgba(255, 255, 255, 0.06);
+            --divider-color: rgba(255, 255, 255, 0.1);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -161,8 +162,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             display: flex;
             justify-content: center;
             background-image: 
-                radial-gradient(circle at 10% 10%, rgba(112, 0, 255, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(100, 255, 218, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 10%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(100, 255, 218, 0.1) 0%, transparent 40%);
             overflow: hidden;
         }
         #app {
@@ -171,10 +172,10 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             height: 100vh;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(30px);
+            backdrop-filter: blur(40px);
             border-left: 1px solid var(--glass-border);
             border-right: 1px solid var(--glass-border);
-            background: rgba(10, 11, 16, 0.4);
+            background: rgba(10, 11, 16, 0.6);
         }
         header {
             padding: 1.5rem 2rem;
@@ -182,7 +183,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--glass-border);
-            background: rgba(10, 11, 16, 0.5);
+            background: rgba(10, 11, 16, 0.7);
         }
         .logo {
             display: flex;
@@ -211,60 +212,73 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2.5rem;
             scroll-behavior: smooth;
         }
         #chat-container::-webkit-scrollbar { width: 6px; }
         #chat-container::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
         .message {
-            max-width: 85%;
-            padding: 1.25rem 1.5rem;
-            border-radius: 20px;
-            font-size: 0.95rem;
+            max-width: 88%;
+            padding: 1.5rem 1.75rem;
+            border-radius: 24px;
+            font-size: 1rem;
             line-height: 1.6;
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .agent-message { align-self: flex-start; background: var(--agent-msg-bg); border: 1px solid rgba(112,0,255,0.25); border-bottom-left-radius: 4px; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .agent-message { 
+            align-self: flex-start; 
+            background: var(--agent-msg-bg); 
+            border: 1px solid rgba(112,0,255,0.2); 
+            border-bottom-left-radius: 4px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
         .user-message { align-self: flex-end; background: var(--user-msg-bg); border: 1px solid var(--glass-border); border-bottom-right-radius: 4px; color: #e2e8f0; }
-        .message-content h3 { color: var(--accent-primary); margin: 1.5rem 0 0.8rem; font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
+        .message-content h3 { color: var(--accent-primary); margin: 1.5rem 0 0.75rem; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 600; }
+        .message-content h4 { color: #fff; margin: 1rem 0 0.5rem; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 600; opacity: 0.9; }
         .message-content h3:first-child { margin-top: 0; }
         .message-content strong { color: #fff; font-weight: 600; }
         .message-content blockquote { 
-            border-left: 3px solid var(--accent-primary); 
-            padding: 0.8rem 1.2rem; 
-            margin: 1rem 0; 
-            background: rgba(100, 255, 218, 0.05); 
-            border-radius: 0 8px 8px 0;
+            border-left: 4px solid var(--accent-primary); 
+            padding: 1rem 1.5rem; 
+            margin: 1.5rem 0; 
+            background: rgba(100, 255, 218, 0.08); 
+            border-radius: 0 12px 12px 0;
             font-style: italic;
+            color: #d1d5db;
         }
-        footer { padding: 2rem; background: rgba(10, 11, 16, 0.8); border-top: 1px solid var(--glass-border); }
+        .message-content hr { border: 0; border-top: 1px solid var(--divider-color); margin: 1.5rem 0; }
+        .message-content ul { margin: 1rem 0; padding-left: 1.2rem; list-style: none; }
+        .message-content li { margin-bottom: 0.75rem; position: relative; }
+        .message-content li::before { content: "•"; color: var(--accent-primary); position: absolute; left: -1.2rem; font-weight: bold; }
+        
+        footer { padding: 2rem; background: rgba(10, 11, 16, 0.85); border-top: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
         .input-area { 
             display: flex; 
             gap: 12px; 
             background: rgba(255,255,255,0.03); 
-            padding: 8px; 
-            border-radius: 16px; 
+            padding: 10px; 
+            border-radius: 18px; 
             border: 1px solid var(--glass-border);
             transition: all 0.3s ease;
         }
-        .input-area:focus-within { border-color: var(--accent-secondary); box-shadow: 0 0 20px rgba(112, 0, 255, 0.15); background: rgba(255,255,255,0.05); }
+        .input-area:focus-within { border-color: var(--accent-secondary); box-shadow: 0 0 25px rgba(112, 0, 255, 0.2); background: rgba(255,255,255,0.05); }
         input { flex: 1; background: transparent; border: none; color: white; padding: 12px 15px; outline: none; font-size: 1rem; }
         button { 
             background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); 
             border: none; 
-            padding: 0 25px; 
-            border-radius: 12px; 
+            padding: 0 30px; 
+            border-radius: 14px; 
             font-weight: 600; 
             cursor: pointer; 
             transition: all 0.3s ease;
             color: #000;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(112, 0, 255, 0.3); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(112, 0, 255, 0.4); }
         button:active { transform: translateY(0); }
-        .loading-dots { display: flex; gap: 6px; padding: 10px 0; }
-        .dot { width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: pulse 1.5s infinite; opacity: 0.5; }
+        .loading-dots { display: flex; gap: 8px; padding: 12px 0; }
+        .dot { width: 10px; height: 10px; background: var(--accent-primary); border-radius: 50%; animation: pulse 1.5s infinite; opacity: 0.5; }
         @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.3; } 50% { transform: scale(1.2); opacity: 1; } }
     </style>
 </head>
@@ -272,7 +286,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     <div id="app">
         <header>
             <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2)">● Live on Railway</div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live on Railway</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -315,75 +329,78 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         function updateContent(div, text) {
             let html = text
                 .replace(/### (.*)/g, '<h3>$1</h3>')
-                .replace(/#### (.*)/g, '<strong>$1</strong>')
-                .replace(/\\*\\*(.*)\\*\\*/g, '<strong>$1</strong>')
-                .replace(/> \\[!(.*?)\\]\\n> (.*)/g, '<blockquote><strong>$1</strong><br>$2</blockquote>')
-                .replace(/\\n/g, '<br>');
+                .replace(/#### (.*)/g, '<h4>$1</h4>')
+                .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+                .replace(/^> (.*)/gm, '<blockquote>$1</blockquote>')
+                .replace(/^---$/gm, '<hr>')
+                .replace(/^- (.*)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+                .replace(/\n/g, '<br>');
             div.innerHTML = \`<div class="message-content">\${html}</div>\`;
-            scrollToBottom();
-        }
+    scrollToBottom();
+}
 
         chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const url = urlInput.value.trim();
-            if (!url) return;
-            urlInput.value = '';
-            addMessage(url, 'user');
-            const agentDiv = addMessage('', 'agent', true);
-            let first = true;
+    e.preventDefault();
+    const url = urlInput.value.trim();
+    if (!url) return;
+    urlInput.value = '';
+    addMessage(url, 'user');
+    const agentDiv = addMessage('', 'agent', true);
+    let first = true;
 
-            try {
-                const response = await fetch('/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: 'message/stream',
-                        params: { message: { role: 'user', parts: [{ type: 'text', text: url }] } },
-                        id: Date.now()
-                    })
-                });
-
-                if (!response.body) throw new Error('Streaming not supported');
-                
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-                    
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\\n');
-                    buffer = lines.pop(); // Keep last incomplete line
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                const result = data.result;
-                                const text = (result?.status?.message?.parts?.[0]?.text) || (result?.message?.parts?.[0]?.text);
-                                if (text) {
-                                    if (first) { agentDiv.innerHTML = ''; first = false; }
-                                    updateContent(agentDiv, text);
-                                }
-                            } catch(e) {}
-                        }
-                    }
-                }
-            } catch (err) {
-                agentDiv.innerHTML = '';
-                updateContent(agentDiv, '<strong>Error:</strong> ' + err.message);
-            }
+    try {
+        const response = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'message/stream',
+                params: { message: { role: 'user', parts: [{ type: 'text', text: url }] } },
+                id: Date.now()
+            })
         });
-    </script>
-</body>
-</html>
-    `;
+
+        if (!response.body) throw new Error('Streaming not supported');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\\n');
+            buffer = lines.pop(); // Keep last incomplete line
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        const result = data.result;
+                        const text = (result?.status?.message?.parts?.[0]?.text) || (result?.message?.parts?.[0]?.text);
+                        if (text) {
+                            if (first) { agentDiv.innerHTML = ''; first = false; }
+                            updateContent(agentDiv, text);
+                        }
+                    } catch (e) { }
+                }
+            }
+        }
+    } catch (err) {
+        agentDiv.innerHTML = '';
+        updateContent(agentDiv, '<strong>Error:</strong> ' + err.message);
+    }
+});
+</script>
+    </body>
+    </html>
+        `;
 
     const httpServer = createServer((req, res) => {
-        console.log(`📥 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+        console.log(`📥[${new Date().toISOString()}] ${req.method} ${req.url} `);
 
         if (req.url === '/' && req.method === 'GET') {
             res.writeHead(200, { 'Content-Type': 'text/html' });

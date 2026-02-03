@@ -30,17 +30,22 @@ export class Summarizer {
 
         try {
             const prompt = `
-            You are a content creation expert. Based on the following video transcription, generate:
-            1. A brief summary in bullet points (maximum 5).
-            2. Three creative ideas for social media posts (X threads, LinkedIn posts, etc.).
+            You are an elite content strategist. Analyze the following video transcription and generate a highly readable, visually structured Executive Summary.
+
+            ### Guidelines:
+            1. Use Emojis to categorize information.
+            2. Use markdown headers (### and ####) for hierarchy.
+            3. Group insights into logical sections.
+            4. Include a "Strategic Takeaway" or "Actionable Idea".
+            5. Use "---" for visual dividers where appropriate.
 
             Transcription:
             "${transcription}"
 
             Respond ONLY in JSON format with the following structure:
             {
-              "summary": "summary text",
-              "contentIdeas": ["idea 1", "idea 2", "idea 3"]
+              "summary": "### 🎯 Key Insights\\n- Insight 1\\n- Insight 2\\n\\n---\\n### 📊 Detailed Breakdown\\n#### Topic A\\n- Detail 1\\n- Detail 2\\n\\n#### Topic B\\n- Detail 3\\n\\n---\\n### 💡 Strategic Takeaway\\n> *One powerful actionable advice based on this content.*",
+              "contentIdeas": ["🚀 **Twitter Thread:** [Idea description]", "💼 **LinkedIn Post:** [Idea description]", "🎥 **Short-form Video:** [Idea description]"]
             }
             `;
 

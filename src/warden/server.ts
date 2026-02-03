@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v2.1] Starting VidScribe Agent Server...');
+    console.log('🚀 [v2.2] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key check
@@ -22,7 +22,7 @@ try {
     if (!apiKey) {
         console.warn('⚠️  WARNING: GROQ_API_KEY is not defined in environment variables!');
     } else {
-        console.log(`✅ [v2.1] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
+        console.log(`✅ [v2.2] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
     }
 
     const server = new AgentServer({
@@ -285,8 +285,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.1</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live & Ready</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.2</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.2</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -298,20 +298,24 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             </div>
         </div>
         <footer>
-            <form id="chat-form" class="input-area">
+            <form id="chat-form" class="input-area" onsubmit="handleFormSubmit(event)">
                 <input type="text" id="url-input" placeholder="Paste video link here..." autocomplete="off">
                 <button type="submit">Analyze</button>
             </form>
         </footer>
     </div>
     <script>
+        console.log('VidScribe v2.2 script loaded');
         const chatContainer = document.getElementById('chat-container');
-        const chatForm = document.getElementById('chat-form');
         const urlInput = document.getElementById('url-input');
+
+        function scrollToBottom() {
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+        }
 
         function addMessage(text, role, isLoading = false) {
             const div = document.createElement('div');
-            div.className = \`message \${role}-message\`;
+            div.className = 'message ' + role + '-message';
             if (isLoading) {
                 div.innerHTML = '<div class="loading-dots"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div>';
             } else {
@@ -322,79 +326,79 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             return div;
         }
 
-        function scrollToBottom() {
-            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
-        }
-
         function updateContent(div, text) {
+            // Safe and simple markdown-like parsing
             let html = text
                 .replace(/### (.*)/g, '<h3>$1</h3>')
                 .replace(/#### (.*)/g, '<h4>$1</h4>')
-                .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+                .replace(/\\*\\*(.*)\\*\\*/g, '<strong>$1</strong>')
                 .replace(/^> (.*)/gm, '<blockquote>$1</blockquote>')
                 .replace(/^---$/gm, '<hr>')
                 .replace(/^- (.*)/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-                .replace(/\n/g, '<br>');
-            div.innerHTML = \`<div class="message-content">\${html}</div>\`;
-    scrollToBottom();
-}
+                .replace(/\\n/g, '<br>');
+            
+            div.innerHTML = '<div class="message-content">' + html + '</div>';
+            scrollToBottom();
+        }
 
-        chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const url = urlInput.value.trim();
-    if (!url) return;
-    urlInput.value = '';
-    addMessage(url, 'user');
-    const agentDiv = addMessage('', 'agent', true);
-    let first = true;
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            const url = urlInput.value.trim();
+            if (!url) return;
+            urlInput.value = '';
+            
+            addMessage(url, 'user');
+            const agentDiv = addMessage('', 'agent', true);
+            let first = true;
 
-    try {
-        const response = await fetch('/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'message/stream',
-                params: { message: { role: 'user', parts: [{ type: 'text', text: url }] } },
-                id: Date.now()
-            })
-        });
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'message/stream',
+                        params: { message: { role: 'user', parts: [{ type: 'text', text: url }] } },
+                        id: Date.now()
+                    })
+                });
 
-        if (!response.body) throw new Error('Streaming not supported');
+                if (!response.body) throw new Error('Streaming not supported');
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\\n');
+                    buffer = lines.pop();
 
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\\n');
-            buffer = lines.pop(); // Keep last incomplete line
-
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        const result = data.result;
-                        const text = (result?.status?.message?.parts?.[0]?.text) || (result?.message?.parts?.[0]?.text);
-                        if (text) {
-                            if (first) { agentDiv.innerHTML = ''; first = false; }
-                            updateContent(agentDiv, text);
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                const result = data.result;
+                                const text = (result?.status?.message?.parts?.[0]?.text) || (result?.message?.parts?.[0]?.text);
+                                if (text) {
+                                    if (first) { agentDiv.innerHTML = ''; first = false; }
+                                    updateContent(agentDiv, text);
+                                }
+                            } catch(e) {}
                         }
-                    } catch (e) { }
+                    }
                 }
+            } catch (err) {
+                console.error('Fetch error:', err);
+                agentDiv.innerHTML = '';
+                updateContent(agentDiv, '<strong>Error:</strong> ' + err.message);
             }
         }
-    } catch (err) {
-        agentDiv.innerHTML = '';
-        updateContent(agentDiv, '<strong>Error:</strong> ' + err.message);
-    }
-});
-</script>
+    </script>
     </body>
     </html>
         `;
@@ -402,7 +406,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v2.1] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v2.2] ${new Date().toISOString()} ${method} ${url}`);
 
         // Health check and Main UI
         if (url === '/' && (method === 'GET' || method === 'HEAD')) {
@@ -420,7 +424,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '2.1' }));
+            res.end(JSON.stringify({ ok: true, version: '2.2' }));
             return;
         }
 

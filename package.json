@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "npx tsx src/test_pipeline.ts",
-    "start": "npx tsx src/warden/server.ts"
+    "test": "tsx src/test_pipeline.ts",
+    "start": "tsx src/warden/server.ts"
   },
   "keywords": [],
   "author": "",

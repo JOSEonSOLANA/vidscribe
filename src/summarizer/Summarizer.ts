@@ -30,22 +30,24 @@ export class Summarizer {
 
         try {
             const prompt = `
-            You are an elite content strategist. Analyze the following video transcription and generate a highly readable, visually structured Executive Summary.
+            You are an elite content strategist for social media. Analyze the following video transcription and generate a professional, high-impact output.
 
-            ### Guidelines:
-            1. Use Emojis to categorize information.
-            2. Use markdown headers (### and ####) for hierarchy.
-            3. Group insights into logical sections.
-            4. Include a "Strategic Takeaway" or "Actionable Idea".
-            5. Use "---" for visual dividers where appropriate.
+            ### OUTPUT STRUCTURE:
+            Your response must be a JSON object with two main fields:
+            1. "summary": A high-impact "Executive Summary" optimized for Twitter/X. 
+               - Start with a powerful hook.
+               - Use 3-5 punchy bullet points.
+               - End with a strategic "Actionable Takeaway".
+               - Format it so it can be COPIED and PASTED directly into X.
+            2. "contentIdeas": 3 specific, creative post ideas (X Thread, LinkedIn, etc.).
 
-            Transcription:
+            ### Transcription:
             "${transcription}"
 
-            Respond ONLY in JSON format with the following structure:
+            Respond ONLY in JSON format:
             {
-              "summary": "### 🎯 Key Insights\\n- Insight 1\\n- Insight 2\\n\\n---\\n### 📊 Detailed Breakdown\\n#### Topic A\\n- Detail 1\\n- Detail 2\\n\\n#### Topic B\\n- Detail 3\\n\\n---\\n### 💡 Strategic Takeaway\\n> *One powerful actionable advice based on this content.*",
-              "contentIdeas": ["🚀 **Twitter Thread:** [Idea description]", "💼 **LinkedIn Post:** [Idea description]", "🎥 **Short-form Video:** [Idea description]"]
+              "summary": "🚀 [HOOK]\\n\\n- [INSIGHT 1]\\n- [INSIGHT 2]\\n- [INSIGHT 3]\\n\\n💡 [STRATEGIC TAKEAWAY]",
+              "contentIdeas": ["idea 1", "idea 2", "idea 3"]
             }
             `;
 

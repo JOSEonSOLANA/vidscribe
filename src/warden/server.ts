@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🎬 Starting VidScribe initialization...');
+    console.log('🚀 [v2.1] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key check
@@ -22,7 +22,7 @@ try {
     if (!apiKey) {
         console.warn('⚠️  WARNING: GROQ_API_KEY is not defined in environment variables!');
     } else {
-        console.log(`✅ GROQ_API_KEY found (starts with: ${apiKey.substring(0, 4)}...)`);
+        console.log(`✅ [v2.1] GROQ_API_KEY verified (starts with: ${apiKey.substring(0, 4)}...)`);
     }
 
     const server = new AgentServer({
@@ -285,8 +285,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live on Railway</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.1</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live & Ready</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -400,17 +400,27 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         `;
 
     const httpServer = createServer((req, res) => {
-        console.log(`📥[${new Date().toISOString()}] ${req.method} ${req.url} `);
+        const method = req.method || 'GET';
+        const url = req.url || '/';
+        console.log(`📥 [v2.1] ${new Date().toISOString()} ${method} ${url}`);
 
-        if (req.url === '/' && req.method === 'GET') {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(CHAT_HTML);
+        // Health check and Main UI
+        if (url === '/' && (method === 'GET' || method === 'HEAD')) {
+            res.writeHead(200, {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            });
+            if (method === 'HEAD') {
+                res.end();
+            } else {
+                res.end(CHAT_HTML);
+            }
             return;
         }
 
-        if (req.url === '/ok' && req.method === 'GET') {
+        if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true }));
+            res.end(JSON.stringify({ ok: true, version: '2.1' }));
             return;
         }
 

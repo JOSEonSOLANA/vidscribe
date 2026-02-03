@@ -30,23 +30,20 @@ export class Summarizer {
 
         try {
             const prompt = `
-            You are an elite content strategist for social media. Analyze the following video transcription and generate a professional, high-impact output.
+            You are an elite content analyst. Analyze the following content and generate a professional, direct, and high-quality summary.
 
-            ### OUTPUT STRUCTURE:
-            Your response must be a JSON object with two main fields:
-            1. "summary": A high-impact "Executive Summary" optimized for Twitter/X. 
-               - Start with a powerful hook.
-               - Use 3-5 punchy bullet points.
-               - End with a strategic "Actionable Takeaway".
-               - Format it so it can be COPIED and PASTED directly into X.
-            2. "contentIdeas": 3 specific, creative post ideas (X Thread, LinkedIn, etc.).
+            ### GUIDELINES:
+            1. Language: Use professional English only.
+            2. Formatting: Use clean, well-structured paragraphs.
+            3. Style: Direct and factual. Avoid emojis, social media hooks, or "punchy" bullet points.
+            4. Structure: Provide the main summary as a few cohesive paragraphs.
 
-            ### Transcription:
+            ### Content:
             "${transcription}"
 
             Respond ONLY in JSON format:
             {
-              "summary": "🚀 [HOOK]\\n\\n- [INSIGHT 1]\\n- [INSIGHT 2]\\n- [INSIGHT 3]\\n\\n💡 [STRATEGIC TAKEAWAY]",
+              "summary": "[Draft the professional summary here using cohesive paragraphs]",
               "contentIdeas": ["idea 1", "idea 2", "idea 3"]
             }
             `;

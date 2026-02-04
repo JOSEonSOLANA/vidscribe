@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v3.1] Starting VidScribe Agent Server...');
+    console.log('🚀 [v3.2] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key checks
@@ -24,7 +24,7 @@ try {
     if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
     if (!geminiKey) console.warn('⚠️ WARNING: GEMINI_API_KEY is not defined!');
 
-    console.log(`✅ [v3.1] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
+    console.log(`✅ [v3.2] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
@@ -320,8 +320,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.1</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.1</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.2</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.2</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -344,7 +344,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v3.1 script loaded');
+        console.log('VidScribe v3.2 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
 
@@ -445,10 +445,10 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v3.1] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v3.2] ${new Date().toISOString()} ${method} ${url}`);
 
-        // Health check and Main UI
-        if (url === '/' && (method === 'GET' || method === 'HEAD')) {
+        // Chat UI (Visual Interface)
+        if (url === '/chat' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, {
                 'Content-Type': 'text/html',
                 'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -463,7 +463,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '3.1' }));
+            res.end(JSON.stringify({ ok: true, version: '3.2' }));
             return;
         }
 

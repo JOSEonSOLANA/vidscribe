@@ -56,9 +56,9 @@ export class Summarizer {
             `;
 
         const modelsToTry = [
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-1.5-pro"
+            "gemini-3-flash-preview",
+            "gemini-flash-latest",
+            "gemini-3-pro-preview"
         ];
 
         for (const modelName of modelsToTry) {
@@ -80,10 +80,17 @@ export class Summarizer {
                     summary: parsed.summary || 'Summary could not be generated.',
                     contentIdeas: parsed.contentIdeas || [],
                     status: 'Completed',
-                    engineUsed: `Gemini ${modelName.split("-")[1].toUpperCase()} (${modelName})`
+                    engineUsed: `Gemini 3 (${modelName})`
                 };
             } catch (geminiError: any) {
-                console.warn(`⚠️ Gemini Model ${modelName} failed: ${geminiError.message}`);
+                const errorMessage = geminiError.message || '';
+                console.warn(`⚠️ Gemini Model ${modelName} failed: ${errorMessage}`);
+
+                // If we get a 429 (Rate Limit), stop trying other Gemini models to avoid further blocking
+                if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('too many requests')) {
+                    console.warn('🛑 Rate limit exceeded (429). Stopping Gemini attempts.');
+                    break;
+                }
             }
         }
 

@@ -55,12 +55,12 @@ export class Summarizer {
             }
             `;
 
-        console.log('Starting summarization (Primary: Gemini 1.5 Flash Latest)...');
+        console.log('Starting summarization (Primary: Gemini 2.0 Flash)...');
 
         try {
             // Phase 1: Try Gemini
             const model = this.genAI.getGenerativeModel({
-                model: "gemini-1.5-flash-latest", // Re-verifying this standard model name
+                model: "gemini-2.0-flash",
                 generationConfig: { responseMimeType: "application/json" }
             });
 
@@ -75,7 +75,7 @@ export class Summarizer {
                 summary: parsed.summary || 'Summary could not be generated.',
                 contentIdeas: parsed.contentIdeas || [],
                 status: 'Completed',
-                engineUsed: 'Gemini 1.5 Flash'
+                engineUsed: 'Gemini 2.0 Flash'
             };
 
         } catch (error) {

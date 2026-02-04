@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v3.2] Starting VidScribe Agent Server...');
+    console.log('🚀 [v3.3] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key checks
@@ -24,7 +24,7 @@ try {
     if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
     if (!geminiKey) console.warn('⚠️ WARNING: GEMINI_API_KEY is not defined!');
 
-    console.log(`✅ [v3.2] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
+    console.log(`✅ [v3.3] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
@@ -299,6 +299,28 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             transition: all 0.3s ease;
         }
         .input-area:focus-within { border-color: var(--accent-secondary); box-shadow: 0 0 25px rgba(112, 0, 255, 0.2); background: rgba(255,255,255,0.05); }
+        .auth-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            align-items: center;
+        }
+        .auth-area input {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            color: var(--text-secondary);
+        }
+        .auth-label {
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            font-weight: 600;
+            white-space: nowrap;
+        }
         input { flex: 1; background: transparent; border: none; color: white; padding: 12px 15px; outline: none; font-size: 1rem; }
         button { 
             background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); 
@@ -320,8 +342,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.2</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.2</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.3</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.3</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -337,6 +359,10 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             </div>
         </div>
         <footer>
+            <div class="auth-area">
+                <span class="auth-label">Auth Key:</span>
+                <input type="password" id="api-key-input" placeholder="Enter WARDEN_API_KEY..." autocomplete="off">
+            </div>
             <form id="chat-form" class="input-area" onsubmit="handleFormSubmit(event)">
                 <input type="text" id="url-input" placeholder="Paste video link here..." autocomplete="off">
                 <button type="submit">Analyze</button>
@@ -344,9 +370,13 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v3.2 script loaded');
+        console.log('VidScribe v3.3 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
+        const apiKeyInput = document.getElementById('api-key-input');
+
+        // Load saved key
+        apiKeyInput.value = localStorage.getItem('warden_api_key') || '';
 
         function scrollToBottom() {
             chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
@@ -391,10 +421,16 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
             const agentDiv = addMessage('', 'agent', true);
             let first = true;
 
+            const apiKey = apiKeyInput.value.trim();
+            if (apiKey) localStorage.setItem('warden_api_key', apiKey);
+
             try {
                 const response = await fetch('/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
                     body: JSON.stringify({
                         jsonrpc: '2.0',
                         method: 'message/stream',
@@ -445,7 +481,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v3.2] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v3.3] ${new Date().toISOString()} ${method} ${url}`);
 
         // Chat UI (Visual Interface)
         if (url === '/chat' && (method === 'GET' || method === 'HEAD')) {
@@ -463,7 +499,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '3.2' }));
+            res.end(JSON.stringify({ ok: true, version: '3.3' }));
             return;
         }
 

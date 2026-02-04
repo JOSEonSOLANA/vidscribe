@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v2.12] Starting VidScribe Agent Server...');
+    console.log('🚀 [v3.0] Starting VidScribe Agent Server...');
     dotenv.config();
 
     // Masked API Key checks
@@ -24,15 +24,15 @@ try {
     if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
     if (!geminiKey) console.warn('⚠️ WARNING: GEMINI_API_KEY is not defined!');
 
-    console.log(`✅ [v2.12] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
+    console.log(`✅ [v3.0] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
             name: "VidScribe",
-            description: "Extracts audio from X/Twitter videos, transcribes using API, and summarizes using Groq.",
+            description: "Advanced media extraction and summarization using Gemini 3 Flash and Groq failover.",
             url: process.env.AGENT_URL || "http://localhost:3000",
             capabilities: { streaming: true, multiTurn: false },
-            skills: ["video-download", "transcription", "summarization", "content-ideas"] as unknown as AgentSkill[],
+            skills: ["media-extraction", "ai-transcription", "smart-summarization"] as unknown as AgentSkill[],
         },
         handler: async function* (context) {
             const userMessage = context.message.parts
@@ -320,8 +320,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v2.12</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v2.12</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.0</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.0</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -344,7 +344,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         </footer>
     </div>
     <script>
-        console.log('VidScribe v2.12 script loaded');
+        console.log('VidScribe v3.0 script loaded');
         const chatContainer = document.getElementById('chat-container');
         const urlInput = document.getElementById('url-input');
 
@@ -445,7 +445,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v2.12] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v3.0] ${new Date().toISOString()} ${method} ${url}`);
 
         // Health check and Main UI
         if (url === '/' && (method === 'GET' || method === 'HEAD')) {
@@ -463,8 +463,20 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '2.12' }));
+            res.end(JSON.stringify({ ok: true, version: '3.0' }));
             return;
+        }
+
+        // Security: Optional API Key verification
+        const wardenKey = process.env.WARDEN_API_KEY;
+        if (wardenKey) {
+            const authHeader = req.headers['authorization'] || req.headers['x-api-key'];
+            if (authHeader !== wardenKey && authHeader !== `Bearer ${wardenKey}`) {
+                console.warn('🔒 Unauthorized access attempt blocked.');
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Unauthorized: Missing or invalid WARDEN_API_KEY' }));
+                return;
+            }
         }
 
         return (server as any).handleRequest(req, res);

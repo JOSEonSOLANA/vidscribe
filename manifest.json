@@ -1,11 +1,11 @@
 {
     "name": "VidScribe",
-    "description": "Extracts audio from X/Twitter videos, transcribes locally with whisper.cpp, and summarizes using Groq Llama-3.",
-    "version": "1.0.0",
+    "description": "Extracts audio from X/Twitter videos and summarizes content using Gemini 3 & Groq failover.",
+    "version": "3.0.0",
     "author": "Antigravity",
     "capabilities": {
-        "transcription": "local-whisper",
-        "summarization": "groq-llama3",
+        "transcription": "api-transcription",
+        "summarization": "gemini-3-flash",
         "extraction": "yt-dlp"
     },
     "endpoints": {

@@ -3,6 +3,8 @@ import { app } from "./agent.js";
 import { VidScribeStateType } from "./state.js";
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import fs from 'fs';
+import path from 'path';
 
 // Global error handling for better debugging in the cloud
 process.on('uncaughtException', (err) => {
@@ -14,8 +16,23 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log(`🚀 [v3.4.5] Starting VidScribe Agent Server at ${new Date().toISOString()}...`);
+    console.log(`🚀 [v3.4.7] Starting VidScribe Agent Server at ${new Date().toISOString()}...`);
     dotenv.config();
+
+    // --- YouTube Cookie Bypass Logic ---
+    const rawCookies = process.env.YOUTUBE_COOKIES;
+    if (rawCookies) {
+        try {
+            const dataDir = path.resolve(process.cwd(), 'data');
+            const cookiesPath = path.join(dataDir, 'cookies.txt');
+            if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+            fs.writeFileSync(cookiesPath, rawCookies);
+            console.log('✅ [v3.4.7] YouTube Cookies injected successfully from environment variable.');
+        } catch (cookieErr) {
+            console.error('❌ Failed to write YouTube cookies:', cookieErr);
+        }
+    }
+    // ------------------------------------
 
     // Masked API Key checks
     const groqKey = process.env.GROQ_API_KEY;
@@ -24,7 +41,7 @@ try {
     if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
     if (!geminiKey) console.warn('⚠️ WARNING: GEMINI_API_KEY is not defined!');
 
-    console.log(`✅ [v3.4.5] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
+    console.log(`✅ [v3.4.7] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
@@ -347,8 +364,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.4.5</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live v3.4.5</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.4.7</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live v3.4.7</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">

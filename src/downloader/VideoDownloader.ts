@@ -50,7 +50,7 @@ export class VideoDownloader {
 
         try {
             console.log('--- Attempt 1: Cloud Bypass (Android / Mobile Headers) ---');
-            return await this.executeDownload(url, false, 'android');
+            return await this.executeDownload(url, true, 'android'); // Enable cookies even in Attempt 1
         } catch (error: any) {
             const errorMessage = error.message || '';
             const isBlock = errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in') || errorMessage.includes('403');

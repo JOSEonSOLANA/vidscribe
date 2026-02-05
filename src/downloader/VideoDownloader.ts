@@ -52,7 +52,12 @@ export class VideoDownloader {
         // --js-runtime node ensures yt-dlp can solve challenges using the server's node environment
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
         const extractorArgs = `--extractor-args "youtube:player_client=ios,tv,mweb" --js-runtime node`;
-        const command = `"${this.ytDlpPath}" ${extractorArgs} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
+
+        // Optional: Support for cookies.txt to bypass intensive bot detection
+        const cookiesPath = path.join(this.outputDir, '../cookies.txt');
+        const cookiesArg = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
+
+        const command = `"${this.ytDlpPath}" ${extractorArgs} ${cookiesArg} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
 
         try {
             const { stdout, stderr } = await execPromise(command);

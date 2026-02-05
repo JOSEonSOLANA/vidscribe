@@ -59,17 +59,20 @@ try {
 
                     const stream = await app.stream({ url });
                     for await (const event of stream) {
-                        let statusText = `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...`;
-                        if (duration > 600) {
-                            statusText += `\n\n> [!TIP]\n> **Long video detected.** Audio has been optimized for duration.`;
+                        if (event.download) {
+                            const duration = event.download.duration || 0;
+                            let statusText = `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...`;
+                            if (duration > 600) {
+                                statusText += `\n\n> [!TIP]\n> **Long video detected.** Audio has been optimized for duration.`;
+                            }
+                            yield {
+                                state: "working" as TaskState,
+                                message: {
+                                    role: "agent",
+                                    parts: [{ type: "text", text: statusText }],
+                                },
+                            };
                         }
-                        yield {
-                            state: "working" as TaskState,
-                            message: {
-                                role: "agent",
-                                parts: [{ type: "text", text: statusText }],
-                            },
-                        };
                         if (event.transcribe) {
                             lastTranscription = event.transcribe.transcription || "";
                             yield {

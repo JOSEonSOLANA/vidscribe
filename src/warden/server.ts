@@ -500,8 +500,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         const url = req.url || '/';
         console.log(`📥 [v3.4] ${new Date().toISOString()} ${method} ${url}`);
 
-        // Chat UI (Visual Interface)
-        if (url === '/chat' && (method === 'GET' || method === 'HEAD')) {
+        // Public Routes (No Auth Required)
+        if ((url === '/' || url === '/chat') && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, {
                 'Content-Type': 'text/html',
                 'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -521,11 +521,12 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
         }
 
         // Security: Compliance with LangGraph Standard (x-api-key)
+        // Public routes above have already returned, so this only applies to API calls
         const wardenKey = process.env.WARDEN_API_KEY;
         if (wardenKey) {
             const authHeader = req.headers['x-api-key'] || req.headers['authorization'];
             if (authHeader !== wardenKey && authHeader !== `Bearer ${wardenKey}`) {
-                console.warn('🔒 Unauthorized access attempt blocked (Invalid Key).');
+                console.warn(`🔒 Unauthorized access attempt blocked to ${url} (Invalid Key).`);
                 res.writeHead(401, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Unauthorized: Missing or invalid x-api-key' }));
                 return;

@@ -37,20 +37,47 @@ export class VideoDownloader {
 
     /**
     * Downloads a video from a URL and extracts the audio as MP3.
-    * @param url The video URL (X/Twitter, YouTube or public URL)
+    * Uses a multi-strategy bypass for YouTube on Cloud IPs (Render).
+    * @param url The video URL
     * @returns Path to the extracted audio file
     */
     async downloadAudio(url: string): Promise<string> {
+        const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+
+        if (!isYouTube) {
+            return await this.executeDownload(url, true); // Use cookies for non-YT by default
+        }
+
+        try {
+            console.log('--- Attempt 1: YouTube Android Bypass (No Cookies) ---');
+            return await this.executeDownload(url, false);
+        } catch (error: any) {
+            const errorMessage = error.message || '';
+            if (errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in')) {
+                console.warn("⚠️ YouTube blocked 'android' client. Trying Fallback with Cookies...");
+                try {
+                    console.log('--- Attempt 2: YouTube Web Fallback (With Cookies) ---');
+                    return await this.executeDownload(url, true);
+                } catch (fallbackError: any) {
+                    console.error('❌ Both YouTube bypass strategies failed.');
+                    throw new Error(`YouTube Blocked: ${fallbackError.message}. If this persists on Render, please provide a YOUTUBE_PO_TOKEN in .env.`);
+                }
+            }
+            throw error;
+        }
+    }
+
+    private async executeDownload(url: string, useCookies: boolean): Promise<string> {
         const timestamp = Date.now();
         const outputPath = path.join(this.outputDir, `audio_${timestamp}.%(ext)s`);
 
-        console.log(`Starting download from: ${url}`);
+        console.log(`Starting download from: ${url} (Cookies: ${useCookies})`);
 
         const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
         const userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
         const referer = isYouTube ? `"https://www.google.com/"` : url;
+        const poToken = process.env.YOUTUBE_PO_TOKEN;
 
         // Base command
         let commandParts = [
@@ -62,14 +89,33 @@ export class VideoDownloader {
             `--referer ${referer}`
         ];
 
-        // Specific args for YouTube to bypass restrictions
+        // YouTube Security Logic
         if (isYouTube) {
-            commandParts.push(`--extractor-args "youtube:player_client=android,web;player_skip=configs,hls,dash"`);
-            // Note: Cookies are intentionally omitted for YouTube to allow the 'android' client to work,
-            // as it currently bypasses most PO-Token and SABR restrictions.
+            if (useCookies) {
+                // When using cookies, we must skip android because yt-dlp would skip it anyway
+                // and stick to clients that support cookies well (mweb, web)
+                commandParts.push(`--extractor-args "youtube:player_client=mweb,web;player_skip=configs,hls,dash"`);
+                const cookiesPath = path.join(this.outputDir, '../cookies.txt');
+                if (fs.existsSync(cookiesPath)) {
+                    commandParts.push(`--cookies "${cookiesPath}"`);
+                }
+            } else {
+                // When NOT using cookies, android client is our best bet for bypass
+                commandParts.push(`--extractor-args "youtube:player_client=android,web;player_skip=configs,hls,dash"`);
+            }
+
+            // Optional PO-Token support for manual override
+            if (poToken) {
+                console.log('💡 Using manually provided YOUTUBE_PO_TOKEN');
+                commandParts.push(`--extractor-args "youtube:po_token=${poToken}"`);
+            }
+
+            // signature solving runtime (useful on Render)
+            commandParts.push(`--js-runtime node`);
         } else {
+            // Generic URL cookies
             const cookiesPath = path.join(this.outputDir, '../cookies.txt');
-            if (fs.existsSync(cookiesPath)) {
+            if (useCookies && fs.existsSync(cookiesPath)) {
                 commandParts.push(`--cookies "${cookiesPath}"`);
             }
         }
@@ -85,10 +131,13 @@ export class VideoDownloader {
 
         try {
             const { stdout, stderr } = await execPromise(command);
-            console.log('yt-dlp output:', stdout);
+            console.log('yt-dlp output summary:', stdout.substring(0, 500) + (stdout.length > 500 ? '...' : ''));
 
-            if (stderr) {
-                console.warn('yt-dlp warning/error:', stderr);
+            if (stderr && stderr.includes('ERROR')) {
+                // Check if it's a fatal error or just a warning
+                if (!fs.existsSync(path.join(this.outputDir, `audio_${timestamp}.mp3`))) {
+                    throw new Error(stderr);
+                }
             }
 
             const finalPath = path.join(this.outputDir, `audio_${timestamp}.mp3`);
@@ -97,8 +146,8 @@ export class VideoDownloader {
             } else {
                 throw new Error('Failed to find the downloaded audio file.');
             }
-        } catch (error) {
-            console.error('Error downloading audio:', error);
+        } catch (error: any) {
+            console.error('Download attempt failed:', error.message);
             throw error;
         }
     }

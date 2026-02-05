@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 try {
-    console.log('🚀 [v3.4] Starting VidScribe Agent Server...');
+    console.log(`🚀 [v3.4.5] Starting VidScribe Agent Server at ${new Date().toISOString()}...`);
     dotenv.config();
 
     // Masked API Key checks
@@ -24,7 +24,7 @@ try {
     if (!groqKey) console.warn('⚠️ WARNING: GROQ_API_KEY is not defined!');
     if (!geminiKey) console.warn('⚠️ WARNING: GEMINI_API_KEY is not defined!');
 
-    console.log(`✅ [v3.4] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
+    console.log(`✅ [v3.4.5] Keys verified (Groq: ${groqKey?.substring(0, 4)}..., Gemini: ${geminiKey?.substring(0, 4)}...)`);
 
     const server = new AgentServer({
         agentCard: {
@@ -347,8 +347,8 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 <body>
     <div id="app">
         <header>
-            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.4</span></div>
-            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Active v3.4</div>
+            <div class="logo"><div class="logo-icon">V</div> VidScribe <span>Agent v3.4.5</span></div>
+            <div style="font-size: 0.85rem; color: var(--accent-primary); background: rgba(100,255,218,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(100,255,218,0.2); font-weight: 500;">● Live v3.4.5</div>
         </header>
         <div id="chat-container">
             <div class="message agent-message">
@@ -498,7 +498,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
     const httpServer = createServer((req, res) => {
         const method = req.method || 'GET';
         const url = req.url || '/';
-        console.log(`📥 [v3.4] ${new Date().toISOString()} ${method} ${url}`);
+        console.log(`📥 [v3.4.5] ${new Date().toISOString()} ${method} ${url}`);
 
         // Public Routes (No Auth Required)
         if ((url === '/' || url === '/chat') && (method === 'GET' || method === 'HEAD')) {
@@ -516,7 +516,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
 
         if (url === '/ok' && (method === 'GET' || method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, version: '3.4' }));
+            res.end(JSON.stringify({ ok: true, version: '3.4.5' }));
             return;
         }
 

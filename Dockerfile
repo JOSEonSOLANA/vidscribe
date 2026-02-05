@@ -3,15 +3,22 @@ FROM node:20-slim
 
 # Install system dependencies
 # ffmpeg for audio extraction
-# curl to download yt-dlp
+# curl to download yt-dlp/deno
 # python3 is required by yt-dlp
+# unzip for deno installation
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     python3 \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp to /usr/local/bin
+# Install Deno (Required by yt-dlp for advanced YouTube extraction)
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="$DENO_INSTALL/bin:$PATH"
+
+# Install/Update yt-dlp to /usr/local/bin
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod a+rx /usr/local/bin/yt-dlp
 

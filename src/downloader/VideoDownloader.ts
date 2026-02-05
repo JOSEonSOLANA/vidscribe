@@ -48,8 +48,10 @@ export class VideoDownloader {
 
         // Command to extract audio and convert to MP3 64kbps mono
         // This optimizes for long videos (YouTube) to stay under the 25MB API limit
+        // --extractor-args "youtube:player_client=android,web_embedded" mimics mobile/embedded requests to bypass bot detection on cloud servers
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
-        const command = `"${this.ytDlpPath}" -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
+        const extractorArgs = `--extractor-args "youtube:player_client=android,web_embedded"`;
+        const command = `"${this.ytDlpPath}" ${extractorArgs} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
 
         try {
             const { stdout, stderr } = await execPromise(command);

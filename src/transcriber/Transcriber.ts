@@ -38,7 +38,7 @@ export class Transcriber {
 
     /**
      * Transcribes an audio file.
-     * @param audioPath Path to the audio file (e.g., .mp3)
+     * @param audioPath Path to the audio file (e.g., .mp3, .wav)
      * @returns The transcribed text
      */
     async transcribe(audioPath: string): Promise<string> {

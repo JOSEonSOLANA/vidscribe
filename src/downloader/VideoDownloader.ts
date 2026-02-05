@@ -36,19 +36,20 @@ export class VideoDownloader {
     }
 
     /**
-     * Downloads a video from a URL and extracts the audio as MP3.
-     * @param url The video URL (X/Twitter or public URL)
-     * @returns Path to the extracted audio file
-     */
+    * Downloads a video from a URL and extracts the audio as MP3.
+    * @param url The video URL (X/Twitter, YouTube or public URL)
+    * @returns Path to the extracted audio file
+    */
     async downloadAudio(url: string): Promise<string> {
         const timestamp = Date.now();
         const outputPath = path.join(this.outputDir, `audio_${timestamp}.%(ext)s`);
 
         console.log(`Starting download from: ${url}`);
 
-        // Command to extract audio and convert to WAV 16kHz mono
+        // Command to extract audio and convert to MP3 64kbps mono
+        // This optimizes for long videos (YouTube) to stay under the 25MB API limit
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
-        const command = `"${this.ytDlpPath}" -x --audio-format wav ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1" --output "${outputPath}" "${url}"`;
+        const command = `"${this.ytDlpPath}" -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
 
         try {
             const { stdout, stderr } = await execPromise(command);
@@ -58,7 +59,7 @@ export class VideoDownloader {
                 console.warn('yt-dlp warning/error:', stderr);
             }
 
-            const finalPath = path.join(this.outputDir, `audio_${timestamp}.wav`);
+            const finalPath = path.join(this.outputDir, `audio_${timestamp}.mp3`);
             if (fs.existsSync(finalPath)) {
                 return finalPath;
             } else {

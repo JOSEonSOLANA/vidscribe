@@ -59,16 +59,17 @@ try {
 
                     const stream = await app.stream({ url });
                     for await (const event of stream) {
-                        if (event.download) {
-                            const duration = event.download.duration || 0;
-                            yield {
-                                state: "working" as TaskState,
-                                message: {
-                                    role: "agent",
-                                    parts: [{ type: "text", text: `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...` }],
-                                },
-                            };
+                        let statusText = `### 📂 Process Status\n✅ Video downloaded (${Math.round(duration)}s).\n⏳ Starting high-speed API transcription...`;
+                        if (duration > 600) {
+                            statusText += `\n\n> [!TIP]\n> **Long video detected.** Audio has been optimized for duration.`;
                         }
+                        yield {
+                            state: "working" as TaskState,
+                            message: {
+                                role: "agent",
+                                parts: [{ type: "text", text: statusText }],
+                            },
+                        };
                         if (event.transcribe) {
                             lastTranscription = event.transcribe.transcription || "";
                             yield {
@@ -352,7 +353,7 @@ ${finalState.contentIdeas ? (finalState.contentIdeas as string[]).map((idea: str
                     <h3>Welcome to VidScribe! 🎬✍️</h3>
                     I'm ready to analyze your content. You can:
                     <ul>
-                        <li>Paste a video link from <strong>X (Twitter)</strong> or any public URL.</li>
+                        <li>Paste a video link from <strong>YouTube</strong>, <strong>X (Twitter)</strong> or any public URL.</li>
                         <li>Paste a <strong>long text or article</strong> for instant summarization.</li>
                     </ul>
                     <blockquote>I'll extract the core value and generate a strategic summary for you.</blockquote>

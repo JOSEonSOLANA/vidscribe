@@ -64,8 +64,10 @@ export class VideoDownloader {
 
         // Specific args for YouTube to bypass restrictions
         if (isYouTube) {
-            commandParts.push(`--extractor-args "youtube:player_client=mweb,ios"`);
-            commandParts.push(`--js-runtime node`);
+            commandParts.push(`--extractor-args "youtube:player_client=android,web;player_skip=configs,hls,dash"`);
+            // Note: Cookies are intentionally omitted for YouTube to allow the 'android' client to work,
+            // as it currently bypasses most PO-Token and SABR restrictions.
+        } else {
             const cookiesPath = path.join(this.outputDir, '../cookies.txt');
             if (fs.existsSync(cookiesPath)) {
                 commandParts.push(`--cookies "${cookiesPath}"`);

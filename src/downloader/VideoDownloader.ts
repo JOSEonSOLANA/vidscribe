@@ -49,23 +49,31 @@ export class VideoDownloader {
         }
 
         try {
-            console.log('--- Attempt 1: Cloud Bypass (Android / No Cookies) ---');
+            console.log('--- Attempt 1: Cloud Bypass (Android / Mobile Headers) ---');
             return await this.executeDownload(url, false, 'android');
         } catch (error: any) {
             const errorMessage = error.message || '';
-            if (errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in')) {
-                console.warn("⚠️ Cloud IP blocked Attempt 1. Trying Fallback with Cookies (Web/iOS)...");
+            const isBlock = errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in') || errorMessage.includes('403');
+
+            if (isBlock) {
+                console.warn("⚠️ Cloud IP blocked Attempt 1. Trying Authorized Fallback (iOS/Cookies)...");
                 try {
-                    console.log('--- Attempt 2: Authorized Bypass (Web/iOS / With Cookies) ---');
-                    return await this.executeDownload(url, true, 'ios,web');
+                    console.log('--- Attempt 2: Authorized Bypass (iOS / With Cookies) ---');
+                    return await this.executeDownload(url, true, 'ios');
                 } catch (fallbackError: any) {
-                    console.warn('⚠️ Both standard bypasses failed. Trying Fail-safe (Embedded)...');
+                    console.warn('⚠️ Both mobile bypasses failed. Trying Desktop Fallback...');
                     try {
-                        console.log('--- Attempt 3: Fail-safe (Web-Embedded) ---');
-                        return await this.executeDownload(url, true, 'web_embedded');
-                    } catch (finalError: any) {
-                        console.error('❌ All automated bypasses failed on Render.');
-                        throw new Error(`YouTube Blocked: ${finalError.message}. This usually happens on Cloud IPs. FIX: Provide a 'YOUTUBE_PO_TOKEN' in Render env vars.`);
+                        console.log('--- Attempt 3: Desktop Bypass (Web / With Cookies) ---');
+                        return await this.executeDownload(url, true, 'web,mweb');
+                    } catch (webError: any) {
+                        console.warn('⚠️ Standard clients failed. Trying Fail-safe (TV)...');
+                        try {
+                            console.log('--- Attempt 4: Last Resort Fail-safe (TVHTML5) ---');
+                            return await this.executeDownload(url, true, 'tvhtml5');
+                        } catch (finalError: any) {
+                            console.error('❌ All automated bypasses failed on Render.');
+                            throw new Error(`YouTube Blocked: ${finalError.message}. FIX: Add 'YOUTUBE_PO_TOKEN' to Render env vars (Follow walkthrough.md guide).`);
+                        }
                     }
                 }
             }
@@ -82,8 +90,14 @@ export class VideoDownloader {
         const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
 
-        // Use a more neutral User Agent for Cloud requests
-        const userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
+        // Match User Agent to Client Group for better spoofing
+        let userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
+        if (clientGroup === 'android') {
+            userAgent = `"com.google.android.youtube/19.29.37 (Linux; U; Android 11; en_US; Pixel 4) gzip"`;
+        } else if (clientGroup === 'ios') {
+            userAgent = `"com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)"`;
+        }
+
         const referer = isYouTube ? `"https://www.google.com/"` : url;
         const poToken = process.env.YOUTUBE_PO_TOKEN;
 
@@ -99,7 +113,7 @@ export class VideoDownloader {
 
         // YouTube Security Logic
         if (isYouTube) {
-            // Apply client grouping and skip heavy formats that require SABR/PO-Token
+            // Apply client grouping
             commandParts.push(`--extractor-args "youtube:player_client=${clientGroup};player_skip=configs,hls,dash"`);
 
             if (useCookies) {
@@ -109,13 +123,13 @@ export class VideoDownloader {
                 }
             }
 
-            // Optional PO-Token support for manual override
+            // Optional PO-Token support for manual override (The ultimate fix for Render)
             if (poToken) {
                 console.log('💡 Using manually provided YOUTUBE_PO_TOKEN');
                 commandParts.push(`--extractor-args "youtube:po_token=${poToken}"`);
             }
 
-            // signature solving runtime (useful on Render)
+            // signature solving runtime (essential for cloud environments)
             commandParts.push(`--js-runtime node`);
         } else {
             // Generic URL cookies
@@ -138,8 +152,7 @@ export class VideoDownloader {
             const { stdout, stderr } = await execPromise(command);
             console.log('yt-dlp output summary:', stdout.substring(0, 500) + (stdout.length > 500 ? '...' : ''));
 
-            if (stderr && stderr.includes('ERROR')) {
-                // Check if it's a fatal error or just a warning
+            if (stderr && stderr.includes('ERROR') && !stderr.includes('title from initial data')) {
                 if (!fs.existsSync(path.join(this.outputDir, `audio_${timestamp}.mp3`))) {
                     throw new Error(stderr);
                 }
@@ -152,7 +165,7 @@ export class VideoDownloader {
                 throw new Error('Failed to find the downloaded audio file.');
             }
         } catch (error: any) {
-            console.error('Download attempt failed:', error.message);
+            console.error(`Method ${clientGroup} failed:`, error.message);
             throw error;
         }
     }

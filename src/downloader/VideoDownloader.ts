@@ -50,11 +50,9 @@ export class VideoDownloader {
         // This optimizes for long videos (YouTube) to stay under the 25MB API limit
         // --extractor-args "youtube:player_client=ios,tv,mweb" mimics high-trust devices to bypass login requirement
         // --js-runtime node ensures yt-dlp can solve challenges using the server's node environment
-        // --impersonate-client chrome mimics browser TLS fingerprints
         // --user-agent + --referer adds legitimacy
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
         const extractorArgs = `--extractor-args "youtube:player_client=ios,tv,mweb" --js-runtime node`;
-        const impersonateArg = `--impersonate-client chrome`;
         const userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
         const referer = `"https://www.google.com/"`;
 
@@ -62,7 +60,7 @@ export class VideoDownloader {
         const cookiesPath = path.join(this.outputDir, '../cookies.txt');
         const cookiesArg = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
 
-        const command = `"${this.ytDlpPath}" ${impersonateArg} --user-agent ${userAgent} --referer ${referer} ${extractorArgs} ${cookiesArg} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
+        const command = `"${this.ytDlpPath}" --user-agent ${userAgent} --referer ${referer} ${extractorArgs} ${cookiesArg} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
 
         try {
             const { stdout, stderr } = await execPromise(command);

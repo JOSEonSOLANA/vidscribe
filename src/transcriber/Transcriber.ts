@@ -51,15 +51,26 @@ export class Transcriber {
 
     private async transcribeGroq(audioPath: string): Promise<string> {
         if (!this.groq) throw new Error('Groq client not initialized');
-        console.log(`Starting Groq transcription for: ${audioPath}`);
+        console.log(`[${new Date().toISOString()}] Starting Groq transcription for: ${audioPath}`);
+
+        if (!fs.existsSync(audioPath)) {
+            throw new Error(`Audio file not found at: ${audioPath}`);
+        }
+        const stats = fs.statSync(audioPath);
+        console.log(`[${new Date().toISOString()}] Audio file size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+
         try {
             const response = await this.groq.audio.transcriptions.create({
                 file: fs.createReadStream(audioPath),
                 model: 'whisper-large-v3-turbo',
             });
+            console.log(`[${new Date().toISOString()}] Groq transcription success. Result length: ${response.text?.length || 0}`);
             return response.text;
-        } catch (error) {
-            console.error('Error during Groq transcription:', error);
+        } catch (error: any) {
+            console.error(`[${new Date().toISOString()}] Groq API Error:`, error.message || error);
+            if (error.response) {
+                console.error(`[${new Date().toISOString()}] Groq Response Data:`, error.response.data);
+            }
             throw error;
         }
     }

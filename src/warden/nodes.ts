@@ -26,7 +26,9 @@ export async function downloadNode(state: VidScribeStateType): Promise<Partial<V
     }
 
     try {
+        console.log(`[${new Date().toISOString()}] Starting download for: ${state.url}`);
         const audioPath = await downloader.downloadAudio(state.url);
+        console.log(`[${new Date().toISOString()}] Download success: ${audioPath}`);
 
         // Use local ffprobe from bin folder on Windows, or system path on Linux
         const isWin = process.platform === 'win32';
@@ -38,7 +40,7 @@ export async function downloadNode(state: VidScribeStateType): Promise<Partial<V
             const { stdout } = await promisify(exec)(`"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${audioPath}"`);
             duration = parseFloat(stdout.trim());
         } catch (e) {
-            console.warn('Could not get audio duration using local ffprobe:', e);
+            console.warn(`[${new Date().toISOString()}] Could not get audio duration using [${ffprobePath}]:`, e);
         }
 
         console.log(`[${new Date().toISOString()}] --- Node: Download END (Took ${(Date.now() - startTime) / 1000}s, Duration: ${duration}s) ---`);
@@ -67,12 +69,14 @@ export async function transcribeNode(state: VidScribeStateType): Promise<Partial
     }
 
     try {
+        console.log(`[${new Date().toISOString()}] Starting transcription for: ${state.audioPath}`);
         const transcription = await transcriber.transcribe(state.audioPath);
+        if (!transcription) throw new Error('Transcriber returned empty text');
         console.log(`[${new Date().toISOString()}] --- Node: Transcribe END (Took ${(Date.now() - startTime) / 1000}s, Length: ${transcription.length} chars) ---`);
         return { transcription, status: 'Transcription completed' };
     } catch (error: any) {
         console.error(`[${new Date().toISOString()}] --- Node: Transcribe ERROR:`, error);
-        return { status: `Transcription failed: ${error.message}` };
+        return { transcription: '', status: `Transcription failed: ${error.message}` };
     }
 }
 

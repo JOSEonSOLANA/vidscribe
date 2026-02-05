@@ -49,19 +49,19 @@ export class VideoDownloader {
         }
 
         try {
-            console.log('--- Attempt 1: Cloud Bypass (Android / Mobile Headers) ---');
-            return await this.executeDownload(url, true, 'android'); // Enable cookies even in Attempt 1
+            console.log('--- Attempt 1: Authenticated Cloud Bypass (iOS) ---');
+            return await this.executeDownload(url, true, 'ios');
         } catch (error: any) {
             const errorMessage = error.message || '';
-            const isBlock = errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in') || errorMessage.includes('403');
+            const isBlock = errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in') || errorMessage.includes('403') || errorMessage.includes('Requested format is not available');
 
             if (isBlock) {
-                console.warn("⚠️ Cloud IP blocked Attempt 1. Trying Authorized Fallback (iOS/Cookies)...");
+                console.warn("⚠️ ios block or format missing. Trying Android Bypass...");
                 try {
-                    console.log('--- Attempt 2: Authorized Bypass (iOS / With Cookies) ---');
-                    return await this.executeDownload(url, true, 'ios');
+                    console.log('--- Attempt 2: Guest/Mobile Bypass (Android) ---');
+                    return await this.executeDownload(url, true, 'android');
                 } catch (fallbackError: any) {
-                    console.warn('⚠️ Both mobile bypasses failed. Trying Desktop Fallback...');
+                    console.warn('⚠️ Android bypass failed. Trying Desktop Fallback...');
                     try {
                         console.log('--- Attempt 3: Desktop Bypass (Web / With Cookies) ---');
                         return await this.executeDownload(url, true, 'web,mweb');
@@ -72,7 +72,7 @@ export class VideoDownloader {
                             return await this.executeDownload(url, true, 'tvhtml5');
                         } catch (finalError: any) {
                             console.error('❌ All automated bypasses failed on Render.');
-                            throw new Error(`YouTube Blocked: ${finalError.message}. FIX: Add 'YOUTUBE_PO_TOKEN' to Render env vars (Follow walkthrough.md guide).`);
+                            throw new Error(`YouTube Blocked: ${finalError.message}. TIP: If using YOUTUBE_COOKIES, ensure they are fresh and include LOGIN_INFO.`);
                         }
                     }
                 }

@@ -56,9 +56,9 @@ export class Summarizer {
             `;
 
         const modelsToTry = [
-            "gemini-3-flash-preview",
-            "gemini-flash-latest",
-            "gemini-3-pro-preview"
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gemini-pro"
         ];
 
         for (const modelName of modelsToTry) {

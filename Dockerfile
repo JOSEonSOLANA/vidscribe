@@ -11,9 +11,10 @@ RUN apt-get update && apt-get install -y \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install/Update yt-dlp to /usr/local/bin
+# Install/Update yt-dlp to /usr/local/bin (Force latest nightly for best bypass)
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp
+    && chmod a+rx /usr/local/bin/yt-dlp \
+    && yt-dlp --update-to nightly
 
 # Create app directory
 WORKDIR /app

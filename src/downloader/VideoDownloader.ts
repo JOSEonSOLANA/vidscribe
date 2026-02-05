@@ -49,32 +49,40 @@ export class VideoDownloader {
         }
 
         try {
-            console.log('--- Attempt 1: YouTube Android Bypass (No Cookies) ---');
-            return await this.executeDownload(url, false);
+            console.log('--- Attempt 1: Cloud Bypass (Android / No Cookies) ---');
+            return await this.executeDownload(url, false, 'android');
         } catch (error: any) {
             const errorMessage = error.message || '';
             if (errorMessage.includes('confirm you’re not a bot') || errorMessage.includes('Sign in')) {
-                console.warn("⚠️ YouTube blocked 'android' client. Trying Fallback with Cookies...");
+                console.warn("⚠️ Cloud IP blocked Attempt 1. Trying Fallback with Cookies (Web/iOS)...");
                 try {
-                    console.log('--- Attempt 2: YouTube Web Fallback (With Cookies) ---');
-                    return await this.executeDownload(url, true);
+                    console.log('--- Attempt 2: Authorized Bypass (Web/iOS / With Cookies) ---');
+                    return await this.executeDownload(url, true, 'ios,web');
                 } catch (fallbackError: any) {
-                    console.error('❌ Both YouTube bypass strategies failed.');
-                    throw new Error(`YouTube Blocked: ${fallbackError.message}. If this persists on Render, please provide a YOUTUBE_PO_TOKEN in .env.`);
+                    console.warn('⚠️ Both standard bypasses failed. Trying Fail-safe (Embedded)...');
+                    try {
+                        console.log('--- Attempt 3: Fail-safe (Web-Embedded) ---');
+                        return await this.executeDownload(url, true, 'web_embedded');
+                    } catch (finalError: any) {
+                        console.error('❌ All automated bypasses failed on Render.');
+                        throw new Error(`YouTube Blocked: ${finalError.message}. This usually happens on Cloud IPs. FIX: Provide a 'YOUTUBE_PO_TOKEN' in Render env vars.`);
+                    }
                 }
             }
             throw error;
         }
     }
 
-    private async executeDownload(url: string, useCookies: boolean): Promise<string> {
+    private async executeDownload(url: string, useCookies: boolean, clientGroup: string = 'web'): Promise<string> {
         const timestamp = Date.now();
         const outputPath = path.join(this.outputDir, `audio_${timestamp}.%(ext)s`);
 
-        console.log(`Starting download from: ${url} (Cookies: ${useCookies})`);
+        console.log(`Starting download from: ${url} (Client: ${clientGroup}, Cookies: ${useCookies})`);
 
         const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
+
+        // Use a more neutral User Agent for Cloud requests
         const userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
         const referer = isYouTube ? `"https://www.google.com/"` : url;
         const poToken = process.env.YOUTUBE_PO_TOKEN;
@@ -91,17 +99,14 @@ export class VideoDownloader {
 
         // YouTube Security Logic
         if (isYouTube) {
+            // Apply client grouping and skip heavy formats that require SABR/PO-Token
+            commandParts.push(`--extractor-args "youtube:player_client=${clientGroup};player_skip=configs,hls,dash"`);
+
             if (useCookies) {
-                // When using cookies, we must skip android because yt-dlp would skip it anyway
-                // and stick to clients that support cookies well (mweb, web)
-                commandParts.push(`--extractor-args "youtube:player_client=mweb,web;player_skip=configs,hls,dash"`);
                 const cookiesPath = path.join(this.outputDir, '../cookies.txt');
                 if (fs.existsSync(cookiesPath)) {
                     commandParts.push(`--cookies "${cookiesPath}"`);
                 }
-            } else {
-                // When NOT using cookies, android client is our best bet for bypass
-                commandParts.push(`--extractor-args "youtube:player_client=android,web;player_skip=configs,hls,dash"`);
             }
 
             // Optional PO-Token support for manual override

@@ -31,7 +31,7 @@ export class Summarizer {
     }
 
     /**
-     * Generates a summary and content ideas from a transcription using Groq.
+     * Generates a summary and content ideas from a transcription using Google Gemini or Groq failover.
      * @param transcription Full text from the video
      * @returns Object with summary and content ideas
      */
@@ -56,9 +56,10 @@ export class Summarizer {
             `;
 
         const modelsToTry = [
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-            "gemini-pro"
+            "gemini-flash-latest",
+            "gemini-2.5-flash",
+            "gemini-3-flash-preview",
+            "gemini-2.0-flash"
         ];
 
         for (const modelName of modelsToTry) {
@@ -80,16 +81,14 @@ export class Summarizer {
                     summary: parsed.summary || 'Summary could not be generated.',
                     contentIdeas: parsed.contentIdeas || [],
                     status: 'Completed',
-                    engineUsed: `Gemini 3 (${modelName})`
+                    engineUsed: `Gemini (${modelName})`
                 };
             } catch (geminiError: any) {
                 const errorMessage = geminiError.message || '';
                 console.warn(`⚠️ Gemini Model ${modelName} failed: ${errorMessage}`);
 
-                // If we get a 429 (Rate Limit), stop trying other Gemini models to avoid further blocking
                 if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('too many requests')) {
-                    console.warn('🛑 Rate limit exceeded (429). Stopping Gemini attempts.');
-                    break;
+                    console.warn('🛑 Rate limit exceeded (429).');
                 }
             }
         }

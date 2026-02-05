@@ -29,7 +29,7 @@ try {
     const server = new AgentServer({
         agentCard: {
             name: "VidScribe",
-            description: "Advanced media extraction and summarization using Gemini 3 Flash and Groq failover.",
+            description: "Advanced media extraction and summarization using Gemini Flash and Groq failover.",
             url: process.env.AGENT_URL || "http://localhost:3000",
             capabilities: { streaming: true, multiTurn: false },
             skills: ["media-extraction", "ai-transcription", "smart-summarization"] as unknown as AgentSkill[],

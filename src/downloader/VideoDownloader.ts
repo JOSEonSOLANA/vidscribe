@@ -46,21 +46,40 @@ export class VideoDownloader {
 
         console.log(`Starting download from: ${url}`);
 
-        // Command to extract audio and convert to MP3 64kbps mono
-        // This optimizes for long videos (YouTube) to stay under the 25MB API limit
-        // --extractor-args "youtube:player_client=ios,tv,mweb" mimics high-trust devices to bypass login requirement
-        // --js-runtime node ensures yt-dlp can solve challenges using the server's node environment
-        // --user-agent + --referer adds legitimacy
+        const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+
         const ffmpegLocArg = this.ffmpegPath ? `--ffmpeg-location "${this.ffmpegPath}"` : '';
-        const extractorArgs = `--extractor-args "youtube:player_client=ios,tv,mweb" --js-runtime node`;
         const userAgent = `"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
-        const referer = `"https://www.google.com/"`;
+        const referer = isYouTube ? `"https://www.google.com/"` : url;
 
-        // Optional: Support for cookies.txt (disabled but logic remains available)
-        const cookiesPath = path.join(this.outputDir, '../cookies.txt');
-        const cookiesArg = fs.existsSync(cookiesPath) ? `--cookies "${cookiesPath}"` : '';
+        // Base command
+        let commandParts = [
+            `"${this.ytDlpPath}"`,
+            `--no-check-certificates`,
+            `--no-part`,
+            `--no-cache-dir`,
+            `--user-agent ${userAgent}`,
+            `--referer ${referer}`
+        ];
 
-        const command = `"${this.ytDlpPath}" --user-agent ${userAgent} --referer ${referer} ${extractorArgs} ${cookiesArg} -x --audio-format mp3 ${ffmpegLocArg} --postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k" --output "${outputPath}" "${url}"`;
+        // Specific args for YouTube to bypass restrictions
+        if (isYouTube) {
+            commandParts.push(`--extractor-args "youtube:player_client=mweb,ios"`);
+            commandParts.push(`--js-runtime node`);
+            const cookiesPath = path.join(this.outputDir, '../cookies.txt');
+            if (fs.existsSync(cookiesPath)) {
+                commandParts.push(`--cookies "${cookiesPath}"`);
+            }
+        }
+
+        // Common audio extraction args
+        commandParts.push(`-f "ba/b" -x --audio-format mp3 --audio-quality 0`);
+        commandParts.push(ffmpegLocArg);
+        commandParts.push(`--postprocessor-args "ffmpeg:-ar 16000 -ac 1 -b:a 64k"`);
+        commandParts.push(`--output "${outputPath}"`);
+        commandParts.push(`"${url}"`);
+
+        const command = commandParts.join(' ');
 
         try {
             const { stdout, stderr } = await execPromise(command);

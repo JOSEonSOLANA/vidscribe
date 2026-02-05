@@ -1,11 +1,11 @@
 {
     "name": "VidScribe",
-    "description": "Extracts audio from X/Twitter videos and summarizes content using Gemini 3 & Groq failover.",
-    "version": "3.0.0",
+    "description": "Extracts audio from X/Twitter videos and summarizes content using Gemini Flash & Groq failover.",
+    "version": "3.4.0",
     "author": "Antigravity",
     "capabilities": {
         "transcription": "api-transcription",
-        "summarization": "gemini-3-flash",
+        "summarization": "gemini-flash",
         "extraction": "yt-dlp"
     },
     "endpoints": {
